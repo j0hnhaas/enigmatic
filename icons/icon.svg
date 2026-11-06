@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="lamp" cx="50%" cy="45%" r="55%">
+      <stop offset="0" stop-color="#fffbe2"/><stop offset=".35" stop-color="#ffe48a"/>
+      <stop offset=".7" stop-color="#f0b43c"/><stop offset="1" stop-color="#a8681a"/>
+    </radialGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7a4f2a"/><stop offset="1" stop-color="#3e2713"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#wood)"/>
+  <rect x="44" y="44" width="424" height="424" rx="56" fill="#191816"/>
+  <circle cx="256" cy="236" r="132" fill="#0d0d0c"/>
+  <circle cx="256" cy="236" r="118" fill="url(#lamp)"/>
+  <text x="256" y="282" font-family="Futura, 'Century Gothic', Arial, sans-serif" font-weight="700" font-size="140" text-anchor="middle" fill="#3a2300">E</text>
+  <text x="256" y="432" font-family="Futura, 'Century Gothic', Arial, sans-serif" font-weight="700" font-size="50" letter-spacing="16" text-anchor="middle" fill="#d9d2c0">ENIGMA</text>
+</svg>

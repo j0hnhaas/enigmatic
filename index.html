@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Enigma Simulator</title>
+  <meta name="description" content="Simulator historischer Enigma-Chiffriermaschinen: Enigma I, M3, M4, D, K, G, T, Reichsbahn und Norenigma.">
+  <meta name="theme-color" content="#1a1712">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">Chiffriermaschine</div>
+    <label class="model-pick">
+      <span class="sr">Modell</span>
+      <select id="model"></select>
+    </label>
+    <div class="top-actions">
+      <button id="btn-settings" class="btn" title="Schlüssel einstellen">⚙ Schlüssel</button>
+      <button id="btn-info" class="btn" title="Über dieses Modell">ⓘ</button>
+      <button id="btn-install" class="btn" hidden>Installieren</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="machine" aria-label="Enigma-Maschine">
+      <div class="box">
+        <div class="panel">
+          <div class="panel-top">
+            <div class="nameplate"><span>ENIGMA</span></div>
+            <div class="rotor-cover" id="rotors" aria-label="Walzen"></div>
+            <div class="model-tag" id="model-tag"></div>
+          </div>
+          <div class="lampboard" id="lamps" aria-live="polite"></div>
+          <div class="keyboard" id="keys"></div>
+        </div>
+        <div class="frontplate" id="frontplate">
+          <div class="plug-title">Steckerbrett</div>
+          <div class="plugboard" id="plugboard">
+            <svg class="cables" id="cables" aria-hidden="true"></svg>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="desk">
+      <div class="paper">
+        <div class="paper-head">
+          <span>Funkspruch</span>
+          <span id="counter">0</span>
+        </div>
+        <div class="tape"><label>Klartext / Eingabe</label><div id="tape-in" class="tape-text"></div></div>
+        <div class="tape"><label>Ausgabe (Lampen)</label><div id="tape-out" class="tape-text out"></div></div>
+        <div class="paper-actions">
+          <button class="btn small" id="btn-undo" title="Letzten Tastendruck zurücknehmen">↶ Zurück</button>
+          <button class="btn small" id="btn-copy">Kopieren</button>
+          <button class="btn small" id="btn-clear">Neues Blatt</button>
+        </div>
+      </div>
+
+      <details class="paper bulk">
+        <summary>Text einfügen und durchschreiben</summary>
+        <textarea id="bulk-text" rows="4" placeholder="Text oder Geheimtext einfügen… (Umlaute werden zu AE/OE/UE)"></textarea>
+        <button class="btn" id="btn-bulk">Durch die Maschine schicken</button>
+      </details>
+
+      <details class="paper trace-box" open>
+        <summary>Stromweg des letzten Buchstabens</summary>
+        <div id="trace" class="trace">Taste drücken…</div>
+      </details>
+    </aside>
+  </main>
+
+  <dialog id="settings" class="sheet">
+    <form method="dialog" class="sheet-inner" id="settings-form">
+      <h2>Tagesschlüssel</h2>
+      <div id="settings-body"></div>
+      <h3>Historische Funksprüche</h3>
+      <div id="presets" class="presets"></div>
+      <h3>Optionen</h3>
+      <label class="check"><input type="checkbox" id="opt-sound"> Tastengeräusch</label>
+      <label class="check"><input type="checkbox" id="opt-groups"> Ausgabe in Fünfergruppen</label>
+      <div class="sheet-actions">
+        <button class="btn" value="close">Fertig</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="info" class="sheet">
+    <form method="dialog" class="sheet-inner">
+      <h2 id="info-title"></h2>
+      <p class="info-meta" id="info-meta"></p>
+      <p id="info-text"></p>
+      <h3>Bedienung</h3>
+      <ul class="help">
+        <li>Tippen auf der Tastatur oder auf die Tasten der Maschine. Die Lampe leuchtet, solange die Taste gedrückt ist.</li>
+        <li>Walzen mit den Rändelrädern drehen: oben/unten antippen oder mit dem Mausrad.</li>
+        <li>Steckerbrett: zwei Buchsen nacheinander antippen verbindet sie, erneutes Antippen löst das Kabel.</li>
+        <li>Entschlüsseln: Maschine auf den gleichen Schlüssel stellen und den Geheimtext eintippen.</li>
+      </ul>
+      <div class="sheet-actions"><button class="btn" value="close">Schließen</button></div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status"></div>
+
+  <script src="js/machines.js"></script>
+  <script src="js/enigma.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
