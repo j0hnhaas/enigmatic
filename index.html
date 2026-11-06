@@ -23,6 +23,7 @@
     </label>
     <div class="top-actions">
       <button id="btn-settings" class="btn" data-i18n-title="settingsTitle"><span aria-hidden="true">⚙</span> <span class="btn-label" data-i18n="settings">Key</span></button>
+      <button id="btn-see" class="btn" aria-pressed="false" data-i18n-title="seeThroughTitle"><span aria-hidden="true">◐</span> <span class="btn-label" data-i18n="seeThrough">See-through</span></button>
       <button id="btn-info" class="btn" data-i18n-title="aboutModel" data-i18n-aria="aboutModel">ⓘ</button>
       <label class="btn lang-pick" data-i18n-title="language">
         <span class="lang-full" id="lang-full"></span><span class="lang-code" id="lang-code"></span><span class="caret" aria-hidden="true">▾</span>
@@ -41,6 +42,7 @@
             <div class="rotor-cover" id="rotors" data-i18n-aria="rotorsAria"></div>
             <div class="model-tag" id="model-tag"></div>
           </div>
+          <div class="seethrough" id="seethrough" hidden></div>
           <div class="lampboard" id="lamps" aria-live="polite"></div>
           <div class="keyboard" id="keys"></div>
         </div>
@@ -118,6 +120,7 @@
   <script src="js/i18n.js"></script>
   <script src="js/machines.js"></script>
   <script src="js/enigma.js"></script>
+  <script src="js/seethrough.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -6,6 +6,10 @@ A simulator of the historic Enigma cipher machines with the look and feel of the
 
 **Languages:** English, Español, Français, Português, Deutsch. The app picks the device language on first start (falling back to English); the choice can be changed in the top bar.
 
+## See-through view
+
+The **See-through** button in the top bar opens the inside of the machine: reflector, rotors, entry wheel and plugboard with their wiring. After every key press the current is animated from the key through all rotors to the reflector and back to the lamp; rotors visibly turn by one contact when they step. A speed slider and a step-by-step mode with a short explanation of every station make it suitable for teaching. On phones the view can be scrolled sideways (landscape works best).
+
 ## Simulated models
 
 | Model | Year | Used by | Special features |
@@ -60,6 +64,7 @@ css/style.css         look (wood, crinkle finish, lamps, keys, plugboard)
 js/i18n.js            translations and language detection
 js/machines.js        machine data: wirings, notches, mechanism
 js/enigma.js          encryption logic (no DOM, testable in Node)
+js/seethrough.js      see-through view with animated current path
 js/app.js             interaction, sound, storage, plugboard cables
 sw.js                 offline cache
 manifest.webmanifest  PWA manifest
@@ -70,6 +75,22 @@ tests/test.js         tests
 - **New language:** copy the `en` block in `js/i18n.js`, translate it and add the language to `LANGS`. The tests report any missing text.
 
 German technical terms (Umkehrwalze, Steckerbrett, Walzenlage …) are kept in brackets in the other languages, as is common in Enigma literature. The machine itself (QWERTZ keyboard, rotor names) and the historic messages stay in their original German.
+
+## Versions
+
+Every release is kept as a branch `release/vX.Y.Z`. To go back to an earlier version, reset `main` to it, e.g.
+
+```bash
+git checkout main
+git reset --hard origin/release/v1.1.0
+git push --force origin main
+```
+
+| Version | Content |
+|---|---|
+| v1.0 | Simulator with ten models, PWA |
+| v1.1 | Five languages, English repository texts |
+| v1.2 | See-through view with animated current path |
 
 ## License
 

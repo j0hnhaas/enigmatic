@@ -9,6 +9,15 @@
   const SOURCE = {
     en: {
       ui: {
+        seeThrough: 'See-through', seeThroughTitle: 'Show the inside of the machine and the path of the current',
+        speed: 'Speed', stepMode: 'Step by step', next: 'Next', forward: 'Forward path', backward: 'Return path',
+        stPrompt: 'Press a key to follow the current through the machine.',
+        stKey: 'Key {k} pressed: first the rotors step on (windows {w}).',
+        stPlug: 'Plugboard: the cable swaps {a} for {b}.', stPlugNone: 'Plugboard: {a} is not plugged and passes straight through.',
+        stEtwIn: 'Entry wheel: the current enters the rotors at contact {a}.',
+        stRotor: 'Rotor {r} (position {p}): {a} becomes {b}.', stRefl: 'The reflector sends the current back: {a} becomes {b}.',
+        stRotorBack: 'Back through rotor {r}: {a} becomes {b}.', stEtwOut: 'Entry wheel: the current leaves the rotors towards letter {a}.',
+        stLamp: 'Lamp {b} lights up: {a} has been encrypted as {b}.',
         brand: 'Cipher Machine', model: 'Model', language: 'Language',
         settings: 'Key', settingsTitle: 'Set the key', aboutModel: 'About this model', install: 'Install',
         machineAria: 'Enigma machine', rotorsAria: 'Rotors', plugboard: 'Plugboard (Steckerbrett)',
@@ -54,6 +63,15 @@
 
     es: {
       ui: {
+        seeThrough: 'Vista interior', seeThroughTitle: 'Mostrar el interior de la máquina y el recorrido de la corriente',
+        speed: 'Velocidad', stepMode: 'Paso a paso', next: 'Siguiente', forward: 'Ida', backward: 'Vuelta',
+        stPrompt: 'Pulsa una tecla para seguir la corriente a través de la máquina.',
+        stKey: 'Tecla {k} pulsada: primero avanzan los rotores (ventanas {w}).',
+        stPlug: 'Panel de conexiones: el cable cambia {a} por {b}.', stPlugNone: 'Panel de conexiones: {a} no está conectada y pasa sin cambios.',
+        stEtwIn: 'Rotor de entrada: la corriente entra en los rotores por el contacto {a}.',
+        stRotor: 'Rotor {r} (posición {p}): {a} se convierte en {b}.', stRefl: 'El reflector devuelve la corriente: {a} se convierte en {b}.',
+        stRotorBack: 'De vuelta por el rotor {r}: {a} se convierte en {b}.', stEtwOut: 'Rotor de entrada: la corriente sale de los rotores hacia la letra {a}.',
+        stLamp: 'Se enciende la lámpara {b}: {a} se ha cifrado como {b}.',
         brand: 'Máquina de cifrado', model: 'Modelo', language: 'Idioma',
         settings: 'Clave', settingsTitle: 'Configurar la clave', aboutModel: 'Acerca de este modelo', install: 'Instalar',
         machineAria: 'Máquina Enigma', rotorsAria: 'Rotores', plugboard: 'Panel de conexiones (Steckerbrett)',
@@ -99,6 +117,15 @@
 
     fr: {
       ui: {
+        seeThrough: 'Vue intérieure', seeThroughTitle: 'Montrer l’intérieur de la machine et le trajet du courant',
+        speed: 'Vitesse', stepMode: 'Pas à pas', next: 'Suivant', forward: 'Aller', backward: 'Retour',
+        stPrompt: 'Appuyez sur une touche pour suivre le courant à travers la machine.',
+        stKey: 'Touche {k} enfoncée : les rotors avancent d’abord (fenêtres {w}).',
+        stPlug: 'Tableau de connexions : le câble échange {a} contre {b}.', stPlugNone: 'Tableau de connexions : {a} n’est pas branchée et passe sans changement.',
+        stEtwIn: 'Rotor d’entrée : le courant entre dans les rotors par le contact {a}.',
+        stRotor: 'Rotor {r} (position {p}) : {a} devient {b}.', stRefl: 'Le réflecteur renvoie le courant : {a} devient {b}.',
+        stRotorBack: 'Retour par le rotor {r} : {a} devient {b}.', stEtwOut: 'Rotor d’entrée : le courant quitte les rotors vers la lettre {a}.',
+        stLamp: 'La lampe {b} s’allume : {a} a été chiffrée en {b}.',
         brand: 'Machine à chiffrer', model: 'Modèle', language: 'Langue',
         settings: 'Clé', settingsTitle: 'Régler la clé', aboutModel: 'À propos de ce modèle', install: 'Installer',
         machineAria: 'Machine Enigma', rotorsAria: 'Rotors', plugboard: 'Tableau de connexions (Steckerbrett)',
@@ -144,6 +171,15 @@
 
     pt: {
       ui: {
+        seeThrough: 'Vista interna', seeThroughTitle: 'Mostrar o interior da máquina e o percurso da corrente',
+        speed: 'Velocidade', stepMode: 'Passo a passo', next: 'Próximo', forward: 'Ida', backward: 'Volta',
+        stPrompt: 'Pressione uma tecla para acompanhar a corrente pela máquina.',
+        stKey: 'Tecla {k} pressionada: primeiro os rotores avançam (janelas {w}).',
+        stPlug: 'Painel de conexões: o cabo troca {a} por {b}.', stPlugNone: 'Painel de conexões: {a} não está ligada e passa sem alteração.',
+        stEtwIn: 'Rotor de entrada: a corrente entra nos rotores pelo contato {a}.',
+        stRotor: 'Rotor {r} (posição {p}): {a} vira {b}.', stRefl: 'O refletor manda a corrente de volta: {a} vira {b}.',
+        stRotorBack: 'De volta pelo rotor {r}: {a} vira {b}.', stEtwOut: 'Rotor de entrada: a corrente sai dos rotores para a letra {a}.',
+        stLamp: 'A lâmpada {b} acende: {a} foi cifrada como {b}.',
         brand: 'Máquina de cifra', model: 'Modelo', language: 'Idioma',
         settings: 'Chave', settingsTitle: 'Configurar a chave', aboutModel: 'Sobre este modelo', install: 'Instalar',
         machineAria: 'Máquina Enigma', rotorsAria: 'Rotores', plugboard: 'Painel de conexões (Steckerbrett)',
@@ -189,6 +225,15 @@
 
     de: {
       ui: {
+        seeThrough: 'Durchsicht', seeThroughTitle: 'Innenleben und Stromweg der Maschine zeigen',
+        speed: 'Tempo', stepMode: 'Schritt für Schritt', next: 'Weiter', forward: 'Hinweg', backward: 'Rückweg',
+        stPrompt: 'Taste drücken, um dem Strom durch die Maschine zu folgen.',
+        stKey: 'Taste {k} gedrückt: zuerst drehen sich die Walzen weiter (Fenster {w}).',
+        stPlug: 'Steckerbrett: das Kabel tauscht {a} gegen {b}.', stPlugNone: 'Steckerbrett: {a} ist nicht gesteckt und geht unverändert durch.',
+        stEtwIn: 'Eintrittswalze: der Strom tritt bei Kontakt {a} in den Walzensatz ein.',
+        stRotor: 'Walze {r} (Stellung {p}): aus {a} wird {b}.', stRefl: 'Die Umkehrwalze schickt den Strom zurück: aus {a} wird {b}.',
+        stRotorBack: 'Zurück durch Walze {r}: aus {a} wird {b}.', stEtwOut: 'Eintrittswalze: der Strom verlässt den Walzensatz zum Buchstaben {a}.',
+        stLamp: 'Lampe {b} leuchtet: {a} wurde zu {b} verschlüsselt.',
         brand: 'Chiffriermaschine', model: 'Modell', language: 'Sprache',
         settings: 'Schlüssel', settingsTitle: 'Schlüssel einstellen', aboutModel: 'Über dieses Modell', install: 'Installieren',
         machineAria: 'Enigma-Maschine', rotorsAria: 'Walzen', plugboard: 'Steckerbrett',

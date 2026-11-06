@@ -1,4 +1,4 @@
-/* global MACHINES, PRESETS, Enigma, I18N */
+/* global MACHINES, PRESETS, Enigma, I18N, SeeThrough */
 (function () {
   'use strict';
   const tr = I18N.t; // translate a key of js/i18n.js
@@ -19,7 +19,10 @@
     groups: store.groups !== false,
     tapeIn: store.tapeIn || '',
     tapeOut: store.tapeOut || '',
-    lang: I18N.setLang(store.lang || I18N.detect())
+    lang: I18N.setLang(store.lang || I18N.detect()),
+    see: !!store.see,
+    seeSpeed: store.seeSpeed || 6,
+    seeStep: !!store.seeStep
   };
   let enigma = null;
   let history = [];
@@ -27,6 +30,7 @@
   let heldKey = null;
   let pendingSocket = null;
   let lastTrace = null;
+  let see = null; // SeeThrough instance, created when the view is first opened
 
   const M = () => MACHINES[state.model];
   const nWheels = () => M().slots + (M().greek ? 1 : 0);
@@ -49,7 +53,7 @@
   function save() {
     try {
       localStorage.setItem(STORE, JSON.stringify({
-        model: state.model, lang: state.lang, cfgs: state.cfgs, sound: state.sound, groups: state.groups,
+        model: state.model, lang: state.lang, see: state.see, seeSpeed: state.seeSpeed, seeStep: state.seeStep, cfgs: state.cfgs, sound: state.sound, groups: state.groups,
         tapeIn: state.tapeIn.slice(-5000), tapeOut: state.tapeOut.slice(-5000)
       }));
     } catch (e) { /* storage not available */ }
@@ -117,7 +121,7 @@
       };
       u.draw = draw;
       const turn = (d) => {
-        u.set(u.get() + d); syncFromMachine(); history = []; draw(d); click(false); save(); renderSettings();
+        u.set(u.get() + d); syncFromMachine(); history = []; draw(d); renderSee(); see && see.clear(); click(false); save(); renderSettings();
         wheel.style.setProperty('--rib', `${(parseFloat(getComputedStyle(wheel).getPropertyValue('--rib')) || 0) + d * 6}px`);
       };
       wheel.addEventListener('click', e => {
@@ -139,11 +143,13 @@
     });
     box._units = units;
     $('#model-tag').textContent = m.name.replace('Enigma ', '');
+    renderSee();
   }
   function updateRotors(before) {
     const units = $('#rotors')._units || [];
     const now = (M().reflectorSettable ? [enigma.reflPos] : []).concat(enigma.positions);
     units.forEach((u, i) => u.draw(before && before[i] !== now[i] ? 1 : 0));
+    renderSee();
   }
 
   /* ---------- Lamps & keys ---------- */
@@ -181,6 +187,7 @@
     litLamp?.classList.add('lit');
     state.tapeIn += ch; state.tapeOut += out;
     updateRotors(before); renderTape(); lastTrace = [ch, res.trace]; renderTrace(); click(true);
+    if (see && state.see) see.play(A.indexOf(ch), res.trace);
     save();
   }
   function release(ch) {
@@ -251,7 +258,7 @@
       pendingSocket = pendingSocket === ch ? null : ch;
     }
     cfg().plugs = ps.join(' ');
-    rebuild(); history = []; click(false); save(); drawCables(); renderSettings();
+    rebuild(); history = []; click(false); save(); drawCables(); renderSettings(); renderSee(); see && see.clear();
   }
   function drawCables() {
     const pb = $('#plugboard'), svg = $('#cables');
@@ -388,6 +395,26 @@
     clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200);
   }
 
+  /* ---------- See-through view ---------- */
+  function renderSee() {
+    if (!state.see || !see) return;
+    see.render(enigma, M());
+  }
+  function setSee(on) {
+    state.see = on;
+    $('#seethrough').hidden = !on;
+    $('#btn-see').setAttribute('aria-pressed', String(on));
+    if (on && !see) {
+      see = new SeeThrough($('#seethrough'), {
+        tr, label, speed: state.seeSpeed, stepMode: state.seeStep,
+        onSettings: s => { state.seeSpeed = s.speed; state.seeStep = s.stepMode; save(); }
+      });
+      see.syncBar();
+    }
+    if (on) { see.prevPos = null; renderSee(); see.clear(); }
+    save();
+  }
+
   /* ---------- Language ---------- */
   function applyLanguage() {
     document.documentElement.lang = state.lang;
@@ -399,6 +426,7 @@
     $('#lang-code').textContent = state.lang.toUpperCase();
     $('#lang').value = state.lang;
     renderRotors(); renderBoards(); renderPlugboard(); renderTape(); renderTrace(); renderPresets(); renderSettings(); renderInfo();
+    if (see) see.applyLang();
   }
   function renderLangSelect() {
     const s = $('#lang');
@@ -419,6 +447,7 @@
     window.addEventListener('blur', () => heldKey && release(heldKey));
 
     $('#btn-settings').addEventListener('click', () => { renderSettings(); $('#settings').showModal(); });
+    $('#btn-see').addEventListener('click', () => setSee(!state.see));
     $('#btn-info').addEventListener('click', () => { renderInfo(); $('#info').showModal(); });
     $('#settings').addEventListener('close', () => { renderRotors(); });
     $('#opt-sound').checked = state.sound;
@@ -440,7 +469,7 @@
       for (const ch of text) out += A[enigma.press(A.indexOf(ch)).out];
       syncFromMachine();
       state.tapeIn += text; state.tapeOut += out;
-      renderTape(); updateRotors(); save(); click(true);
+      renderTape(); updateRotors(); save(); click(true); see && see.clear();
       toast(tr('processed', { n: text.length }));
     });
 
@@ -457,7 +486,7 @@
     enigma.reflPos = h.reflPos;
     syncFromMachine();
     state.tapeIn = state.tapeIn.slice(0, h.len); state.tapeOut = state.tapeOut.slice(0, h.len);
-    updateRotors(); renderTape(); save(); click(false);
+    updateRotors(); renderTape(); save(); click(false); see && see.clear();
   }
 
   /* ---------- Start ---------- */
@@ -467,6 +496,7 @@
   rebuild();
   applyLanguage();
   bind();
+  setSee(state.see);
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     navigator.serviceWorker.register('sw.js').catch(() => {});

@@ -1,5 +1,5 @@
 // Offline cache. Increase VERSION whenever the app changes.
-const VERSION = 'enigma-v1.1.0';
+const VERSION = 'enigma-v1.2.0';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './js/i18n.js',
   './js/machines.js',
   './js/enigma.js',
+  './js/seethrough.js',
   './js/app.js',
   './manifest.webmanifest',
   './icons/icon.svg',
