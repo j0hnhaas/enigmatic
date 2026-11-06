@@ -1,9 +1,10 @@
-// Offline-Cache. Bei jeder Änderung der App VERSION erhöhen.
-const VERSION = 'enigma-v1.0.1';
+// Offline cache. Increase VERSION whenever the app changes.
+const VERSION = 'enigma-v1.1.0';
 const ASSETS = [
   './',
   './index.html',
   './css/style.css',
+  './js/i18n.js',
   './js/machines.js',
   './js/enigma.js',
   './js/app.js',
@@ -26,7 +27,7 @@ self.addEventListener('activate', e => {
   );
 });
 
-// Stale-while-revalidate: sofort aus dem Cache, im Hintergrund aktualisieren
+// Stale-while-revalidate: serve from cache at once, refresh in the background
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(

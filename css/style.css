@@ -27,7 +27,7 @@ body {
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 button { font: inherit; color: inherit; }
 
-/* ---------- Kopfzeile ---------- */
+/* ---------- Top bar ---------- */
 .topbar {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
@@ -52,6 +52,13 @@ button { font: inherit; color: inherit; }
 .btn:active { transform: translateY(1px); }
 .btn.small { padding: 5px 9px; font-size: 13px; }
 
+/* Language picker: visible label with an invisible native select on top */
+.lang-pick { position: relative; display: inline-flex; align-items: center; gap: 6px; }
+.lang-pick select { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 16px; }
+.lang-code { display: none; font-weight: 600; letter-spacing: .06em; }
+.lang-pick .caret { font-size: 11px; opacity: .7; }
+.lang-pick:focus-within { border-color: var(--brass); }
+
 /* ---------- Layout ---------- */
 .layout {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
@@ -60,13 +67,16 @@ button { font: inherit; color: inherit; }
 @media (max-width: 960px) { .layout { grid-template-columns: 1fr; padding: 10px; gap: 14px; } }
 @media (max-width: 560px) {
   .brand { display: none; }
+  .lang-full { display: none; }
+  .lang-code { display: inline; }
+  .btn-label { display: none; }
   .topbar { flex-wrap: nowrap; padding-left: 10px; padding-right: 10px; gap: 8px; }
   .model-pick { flex: 1; min-width: 0; }
   .model-pick select { width: 100%; }
   .model-tag { display: none; }
 }
 
-/* ---------- Holzkiste ---------- */
+/* ---------- Wooden case ---------- */
 .box {
   border-radius: 14px;
   padding: clamp(10px, 2.4vw, 24px);
@@ -80,7 +90,7 @@ button { font: inherit; color: inherit; }
     0 30px 60px rgba(0,0,0,.6), 0 6px 14px rgba(0,0,0,.5);
   position: relative;
 }
-.box::before { /* Messingecken */
+.box::before { /* brass corners */
   content: ""; position: absolute; inset: 6px; border-radius: 10px; pointer-events: none;
   background:
     radial-gradient(circle at 10px 10px, #d7b778 0 4px, #6b5228 5px, transparent 6px),
@@ -89,7 +99,7 @@ button { font: inherit; color: inherit; }
     radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), #d7b778 0 4px, #6b5228 5px, transparent 6px);
 }
 
-/* Schrumpflack-Platte */
+/* Crinkle-finish panel */
 .panel, .frontplate {
   background-color: #191816;
   background-image:
@@ -114,7 +124,7 @@ button { font: inherit; color: inherit; }
   border: 1px solid #4b463c; padding: 3px 7px; border-radius: 2px; background: #121110;
 }
 
-/* ---------- Walzen ---------- */
+/* ---------- Rotors ---------- */
 .rotor-cover {
   display: flex; gap: clamp(10px, 2.2vw, 22px); justify-content: center;
   padding: 10px clamp(10px, 2vw, 20px) 8px; border-radius: 10px;
@@ -128,7 +138,7 @@ button { font: inherit; color: inherit; }
   border-radius: 3px; background: #050505;
   box-shadow: inset 0 3px 5px rgba(0,0,0,.95), 0 0 0 2px #2e2c28, 0 0 0 3px #0a0a0a;
 }
-.window::after { /* Glas */
+.window::after { /* glass */
   content: ""; position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(0,0,0,.7), transparent 30%, transparent 70%, rgba(0,0,0,.75)),
               linear-gradient(120deg, rgba(255,255,255,.14), transparent 40%);
@@ -158,7 +168,7 @@ button { font: inherit; color: inherit; }
 }
 .wheel:focus-visible, .key:focus-visible, .socket:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
 
-/* ---------- Lampenfeld ---------- */
+/* ---------- Lampboard ---------- */
 .lampboard, .keyboard { display: flex; flex-direction: column; align-items: center; gap: var(--gap); }
 .lampboard { margin-bottom: clamp(16px, 3vw, 30px); padding-bottom: clamp(12px, 2.4vw, 24px); border-bottom: 1px solid rgba(0,0,0,.6); box-shadow: 0 1px 0 rgba(255,255,255,.04); }
 .row { display: flex; gap: var(--gap); }
@@ -170,7 +180,7 @@ button { font: inherit; color: inherit; }
   transition: background .05s, box-shadow .05s;
   position: relative;
 }
-.lamp::after { /* Glasreflex */
+.lamp::after { /* glass reflection */
   content: ""; position: absolute; width: 34%; height: 20%; left: 22%; top: 16%; border-radius: 50%;
   background: rgba(255,255,255,.12); filter: blur(1px); transform: rotate(-25deg);
 }
@@ -181,7 +191,7 @@ button { font: inherit; color: inherit; }
 }
 .lamp.lit span { color: #3a2300; text-shadow: 0 0 2px rgba(255,255,255,.6); }
 
-/* ---------- Tastatur ---------- */
+/* ---------- Keyboard ---------- */
 .key {
   width: var(--key); height: var(--key); border-radius: 50%; padding: 0; border: 0; cursor: pointer;
   position: relative; display: grid; place-items: center;
@@ -198,7 +208,7 @@ button { font: inherit; color: inherit; }
 }
 .key.down { transform: translateY(calc(var(--key) * .1)); box-shadow: 0 calc(var(--key) * .02) 0 #0b0b0a, 0 2px 3px rgba(0,0,0,.7); }
 
-/* ---------- Steckerbrett ---------- */
+/* ---------- Plugboard ---------- */
 .frontplate { margin-top: clamp(10px, 2vw, 18px); padding: 10px clamp(8px, 2vw, 20px) 18px; }
 .frontplate[hidden] { display: none; }
 .plug-title { text-align: center; font-size: 10px; letter-spacing: .4em; color: #8f8878; margin-bottom: 6px; text-transform: uppercase; }
@@ -224,7 +234,7 @@ button { font: inherit; color: inherit; }
 .cables { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 2; }
 .cables .plug { fill: #2b2620; stroke: #000; stroke-width: 1; }
 
-/* ---------- Schreibtisch / Papier ---------- */
+/* ---------- Desk / paper ---------- */
 .desk { display: flex; flex-direction: column; gap: 14px; }
 .paper {
   background:
@@ -251,7 +261,7 @@ button { font: inherit; color: inherit; }
 .hop.refl { background: #f6d98a; }
 .hop.muted { opacity: .45; }
 
-/* ---------- Dialoge ---------- */
+/* ---------- Dialogs ---------- */
 .sheet { border: 0; padding: 0; background: transparent; color: inherit; max-width: min(640px, 94vw); width: 100%; }
 .sheet::backdrop { background: rgba(0,0,0,.65); backdrop-filter: blur(2px); }
 .sheet-inner {
@@ -264,6 +274,7 @@ button { font: inherit; color: inherit; }
 .field > label { display: block; font-size: 12px; color: #a69f8e; margin-bottom: 4px; letter-spacing: .05em; }
 .controls { display: flex; flex-wrap: wrap; gap: 6px; }
 .controls input[type=text] { flex: 1; min-width: 220px; text-transform: uppercase; letter-spacing: .1em; }
+.controls input[type=text]::placeholder { text-transform: none; letter-spacing: normal; }
 .fixed { padding: 7px 10px; border: 1px dashed #5a4a33; border-radius: 6px; font-size: 14px; }
 .presets { display: flex; flex-direction: column; gap: 6px; }
 .preset { text-align: left; }

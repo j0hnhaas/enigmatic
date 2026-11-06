@@ -1,6 +1,7 @@
-/* global MACHINES, PRESETS, Enigma */
+/* global MACHINES, PRESETS, Enigma, I18N */
 (function () {
   'use strict';
+  const tr = I18N.t; // translate a key of js/i18n.js
   const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const ROWS = ['QWERTZUIO', 'ASDFGHJK', 'PYXCVBNML'];
   const $ = s => document.querySelector(s);
@@ -8,7 +9,7 @@
   const mod = n => ((n % 26) + 26) % 26;
   const STORE = 'enigma-pwa-v1';
 
-  /* ---------- Zustand ---------- */
+  /* ---------- State ---------- */
   let store = {};
   try { store = JSON.parse(localStorage.getItem(STORE)) || {}; } catch (e) { store = {}; }
   const state = {
@@ -17,13 +18,15 @@
     sound: store.sound !== false,
     groups: store.groups !== false,
     tapeIn: store.tapeIn || '',
-    tapeOut: store.tapeOut || ''
+    tapeOut: store.tapeOut || '',
+    lang: I18N.setLang(store.lang || I18N.detect())
   };
   let enigma = null;
   let history = [];
   let litLamp = null;
   let heldKey = null;
   let pendingSocket = null;
+  let lastTrace = null;
 
   const M = () => MACHINES[state.model];
   const nWheels = () => M().slots + (M().greek ? 1 : 0);
@@ -46,10 +49,10 @@
   function save() {
     try {
       localStorage.setItem(STORE, JSON.stringify({
-        model: state.model, cfgs: state.cfgs, sound: state.sound, groups: state.groups,
+        model: state.model, lang: state.lang, cfgs: state.cfgs, sound: state.sound, groups: state.groups,
         tapeIn: state.tapeIn.slice(-5000), tapeOut: state.tapeOut.slice(-5000)
       }));
-    } catch (e) { /* Speicher nicht verfügbar */ }
+    } catch (e) { /* storage not available */ }
   }
   function rebuild() {
     enigma = new Enigma(M(), cfg());
@@ -63,7 +66,7 @@
 
   const label = (i) => M().display === 'numbers' ? String(i + 1).padStart(2, '0') : A[mod(i)];
 
-  /* ---------- Klang ---------- */
+  /* ---------- Sound ---------- */
   let actx = null;
   function click(strong) {
     if (!state.sound) return;
@@ -83,17 +86,17 @@
         og.gain.setValueAtTime(0.35, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
         o.connect(og).connect(actx.destination); o.start(t); o.stop(t + 0.12);
       }
-    } catch (e) { /* kein Audio */ }
+    } catch (e) { /* no audio */ }
   }
 
-  /* ---------- Walzen ---------- */
+  /* ---------- Rotors ---------- */
   function renderRotors() {
     const box = $('#rotors');
     box.innerHTML = '';
     const m = M(), c = cfg();
     const units = [];
     if (m.reflectorSettable) units.push({ name: 'UKW', get: () => enigma.reflPos, set: v => { enigma.reflPos = mod(v); } });
-    // immer über "enigma" zugreifen: die Instanz wird bei Steckeränderungen neu erzeugt
+    // always access via "enigma": the instance is recreated when the plugboard changes
     enigma.rotors.forEach((r, i) => units.push({ name: r.name, get: () => enigma.rotors[i].pos, set: v => { enigma.rotors[i].pos = mod(v); } }));
     units.forEach(u => {
       const unit = el('div', 'rotor-unit');
@@ -104,7 +107,7 @@
       win.append(strip);
       const wheel = el('button', 'wheel');
       wheel.type = 'button';
-      wheel.setAttribute('aria-label', `Walze ${u.name} drehen`);
+      wheel.setAttribute('aria-label', tr('turnRotor', { name: u.name }));
       const name = el('div', 'rotor-name', u.name);
       unit.append(name, win, wheel);
       const draw = (dir) => {
@@ -143,7 +146,7 @@
     units.forEach((u, i) => u.draw(before && before[i] !== now[i] ? 1 : 0));
   }
 
-  /* ---------- Lampen & Tasten ---------- */
+  /* ---------- Lamps & keys ---------- */
   function renderBoards() {
     const lamps = $('#lamps'), keys = $('#keys');
     lamps.innerHTML = ''; keys.innerHTML = '';
@@ -154,7 +157,7 @@
         lr.append(lamp);
         const key = el('button', 'key'); key.type = 'button'; key.dataset.k = ch;
         key.append(el('span', 'cap', ch));
-        key.setAttribute('aria-label', 'Taste ' + ch);
+        key.setAttribute('aria-label', tr('keyAria', { k: ch }));
         key.addEventListener('pointerdown', e => { e.preventDefault(); key.setPointerCapture?.(e.pointerId); press(ch); });
         ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => key.addEventListener(ev, () => release(ch)));
         key.addEventListener('contextmenu', e => e.preventDefault());
@@ -177,7 +180,7 @@
     litLamp = document.querySelector(`.lamp[data-l="${out}"]`);
     litLamp?.classList.add('lit');
     state.tapeIn += ch; state.tapeOut += out;
-    updateRotors(before); renderTape(); renderTrace(ch, res.trace); click(true);
+    updateRotors(before); renderTape(); lastTrace = [ch, res.trace]; renderTrace(); click(true);
     save();
   }
   function release(ch) {
@@ -189,29 +192,32 @@
     renderSettings();
   }
 
-  /* ---------- Papierstreifen ---------- */
+  /* ---------- Paper tape ---------- */
   const fmt = s => state.groups ? s.replace(/(.{5})/g, '$1 ').trim() : s;
   function renderTape() {
     $('#tape-in').textContent = fmt(state.tapeIn);
     $('#tape-out').textContent = fmt(state.tapeOut);
-    $('#counter').textContent = state.tapeIn.length + ' Zeichen';
+    $('#counter').textContent = tr('chars', { n: state.tapeIn.length });
     ['#tape-in', '#tape-out'].forEach(s => { const t = $(s); t.scrollTop = t.scrollHeight; });
   }
-  function renderTrace(key, trace) {
+  const STAGE = { Stecker: 'trPlug', ETW: 'trEtw', UKW: 'trRefl' };
+  function renderTrace() {
     const box = $('#trace');
     box.innerHTML = '';
+    if (!lastTrace) { box.textContent = tr('tracePrompt'); return; }
+    const [key, trace] = lastTrace;
     const add = (lbl, ch, cls) => {
       const s = el('span', 'hop ' + (cls || '')); s.append(el('small', '', lbl), el('b', '', ch)); box.append(s);
     };
-    add('Taste', key, 'end');
-    trace.forEach(([stage, c]) => add(stage, A[c], stage === 'UKW' ? 'refl' : ''));
+    add(tr('trKey'), key, 'end');
+    trace.forEach(([stage, c]) => add(STAGE[stage] ? tr(STAGE[stage]) : stage, A[c], stage === 'UKW' ? 'refl' : ''));
     box.lastChild.classList.add('end');
-    box.lastChild.querySelector('small').textContent = 'Lampe';
+    box.lastChild.querySelector('small').textContent = tr('trLamp');
     if (!M().plugboard) box.querySelectorAll('.hop').forEach((h, i, all) => { if (i === 1 || i === all.length - 1) h.classList.add('muted'); });
     box.lastChild.classList.remove('muted');
   }
 
-  /* ---------- Steckerbrett ---------- */
+  /* ---------- Plugboard ---------- */
   function renderPlugboard() {
     const fp = $('#frontplate');
     fp.hidden = !M().plugboard;
@@ -223,7 +229,7 @@
       [...row].forEach(ch => {
         const s = el('button', 'socket'); s.type = 'button'; s.dataset.s = ch;
         s.append(el('span', 'plabel', ch), el('span', 'holes'));
-        s.setAttribute('aria-label', 'Buchse ' + ch);
+        s.setAttribute('aria-label', tr('socketAria', { k: ch }));
         s.addEventListener('click', () => { socketClick(ch); s.blur(); });
         r.append(s);
       });
@@ -239,7 +245,7 @@
       ps = ps.filter(p => p !== existing);
       pendingSocket = null;
     } else if (pendingSocket && pendingSocket !== ch) {
-      if (ps.length >= 13) { toast('Alle 13 Kabel sind gesteckt.'); pendingSocket = null; }
+      if (ps.length >= 13) { toast(tr('allCables')); pendingSocket = null; }
       else { ps.push(pendingSocket + ch); pendingSocket = null; }
     } else {
       pendingSocket = pendingSocket === ch ? null : ch;
@@ -282,7 +288,7 @@
     });
   }
 
-  /* ---------- Einstellungen ---------- */
+  /* ---------- Settings ---------- */
   function select(options, value, onChange, labels) {
     const s = el('select');
     options.forEach((o, i) => { const op = el('option', '', labels ? labels[i] : o); op.value = o; if (String(o) === String(value)) op.selected = true; s.append(op); });
@@ -308,37 +314,36 @@
     const reflControls = [];
     if (rnames.length > 1) reflControls.push(select(rnames, c.reflector, v => { c.reflector = v; changed(); }));
     else reflControls.push(el('span', 'fixed', rnames[0]));
-    if (m.reflectorSettable) reflControls.push(select(idxs, c.reflectorPos, v => { c.reflectorPos = +v; changed(); }, idxs.map(i => 'Stellung ' + A[i])));
-    body.append(field('Umkehrwalze', ...reflControls));
+    if (m.reflectorSettable) reflControls.push(select(idxs, c.reflectorPos, v => { c.reflectorPos = +v; changed(); }, idxs.map(i => tr('position', { l: A[i] }))));
+    body.append(field(tr('reflector'), ...reflControls));
 
     const order = [];
     if (extra) order.push(select(Object.keys(m.greek), c.greek, v => { c.greek = v; changed(); }));
     c.rotors.forEach((r, i) => order.push(select(Object.keys(m.rotors), r, v => {
       const j = c.rotors.indexOf(v);
-      if (j >= 0 && j !== i) c.rotors[j] = c.rotors[i]; // Walze existiert nur einmal: tauschen
+      if (j >= 0 && j !== i) c.rotors[j] = c.rotors[i]; // each rotor exists only once: swap
       c.rotors[i] = v; changed();
     })));
-    body.append(field('Walzenlage (links → rechts)', ...order));
+    body.append(field(tr('rotorOrder'), ...order));
 
-    body.append(field('Ringstellung', ...c.rings.map((v, i) => select(idxs, v, nv => { c.rings[i] = +nv; changed(); }, lbls))));
-    body.append(field('Grundstellung', ...c.positions.map((v, i) => select(idxs, v, nv => { c.positions[i] = +nv; changed(); }, lbls))));
+    body.append(field(tr('ringSetting'), ...c.rings.map((v, i) => select(idxs, v, nv => { c.rings[i] = +nv; changed(); }, lbls))));
+    body.append(field(tr('startPos'), ...c.positions.map((v, i) => select(idxs, v, nv => { c.positions[i] = +nv; changed(); }, lbls))));
 
     if (m.plugboard) {
-      const inp = el('input'); inp.type = 'text'; inp.value = c.plugs; inp.placeholder = 'z. B. AV BS CG DL FU';
+      const inp = el('input'); inp.type = 'text'; inp.value = c.plugs; inp.placeholder = tr('plugPlaceholder');
       inp.autocapitalize = 'characters'; inp.spellcheck = false;
       inp.addEventListener('change', () => { c.plugs = inp.value; changed(); });
-      body.append(field('Steckerverbindungen', inp));
+      body.append(field(tr('plugConnections'), inp));
     }
-    const reset = el('button', 'btn small', 'Auf Standard zurücksetzen'); reset.type = 'button';
+    const reset = el('button', 'btn small', tr('resetDefault')); reset.type = 'button';
     reset.addEventListener('click', () => { state.cfgs[state.model] = defaultCfg(state.model); changed(); });
     body.append(reset);
-    void extra;
   }
 
   function renderPresets() {
     const box = $('#presets'); box.innerHTML = '';
     PRESETS.forEach(p => {
-      const b = el('button', 'btn small preset', p.title); b.type = 'button';
+      const b = el('button', 'btn small preset', tr('preset.' + p.id)); b.type = 'button';
       b.addEventListener('click', () => {
         state.model = p.machine; $('#model').value = p.machine;
         state.cfgs[p.machine] = Object.assign(defaultCfg(p.machine), JSON.parse(JSON.stringify(p.cfg)));
@@ -347,13 +352,13 @@
         $('#bulk-text').value = p.text;
         $('.bulk').open = true;
         $('#settings').close();
-        toast('Schlüssel gesetzt, Geheimtext eingefügt. Jetzt „Durch die Maschine schicken“.');
+        toast(tr('presetLoaded'));
       });
       box.append(b);
     });
   }
 
-  /* ---------- Modellwechsel ---------- */
+  /* ---------- Model selection & info ---------- */
   function renderModelSelect() {
     const s = $('#model'); s.innerHTML = '';
     Object.entries(MACHINES).forEach(([id, m]) => {
@@ -365,8 +370,15 @@
   function renderInfo() {
     const m = M();
     $('#info-title').textContent = m.name;
-    $('#info-meta').textContent = `${m.user} · ab ${m.year} · ${Object.keys(m.rotors).length} Walzen${m.greek ? ' + Zusatzwalze' : ''} · ${m.plugboard ? 'mit' : 'ohne'} Steckerbrett · ${m.stepping === 'gear' ? 'Zahnradantrieb' : 'Schaltklinken'}`;
-    $('#info-text').textContent = m.info;
+    const id = state.model;
+    $('#info-meta').textContent = [
+      tr(`m.${id}.user`),
+      `${tr('since')} ${m.year}`,
+      tr('rotorsN', { n: Object.keys(m.rotors).length }) + (m.greek ? ' ' + tr('plusGreek') : ''),
+      tr(m.plugboard ? 'withPlug' : 'noPlug'),
+      tr(m.stepping === 'gear' ? 'gearDrive' : 'leverDrive')
+    ].join(' · ');
+    $('#info-text').textContent = tr(`m.${id}.info`);
   }
 
   /* ---------- Toast ---------- */
@@ -376,7 +388,25 @@
     clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 3200);
   }
 
-  /* ---------- Ereignisse ---------- */
+  /* ---------- Language ---------- */
+  function applyLanguage() {
+    document.documentElement.lang = state.lang;
+    document.querySelectorAll('[data-i18n]').forEach(e => { e.textContent = tr(e.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-title]').forEach(e => { e.title = tr(e.dataset.i18nTitle); });
+    document.querySelectorAll('[data-i18n-aria]').forEach(e => { e.setAttribute('aria-label', tr(e.dataset.i18nAria)); });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(e => { e.placeholder = tr(e.dataset.i18nPlaceholder); });
+    $('#lang-full').textContent = I18N.LANGS[state.lang];
+    $('#lang-code').textContent = state.lang.toUpperCase();
+    $('#lang').value = state.lang;
+    renderRotors(); renderBoards(); renderPlugboard(); renderTape(); renderTrace(); renderPresets(); renderSettings(); renderInfo();
+  }
+  function renderLangSelect() {
+    const s = $('#lang');
+    Object.entries(I18N.LANGS).forEach(([code, name]) => { const o = el('option', '', name); o.value = code; s.append(o); });
+    s.addEventListener('change', () => { state.lang = I18N.setLang(s.value); save(); applyLanguage(); });
+  }
+
+  /* ---------- Events ---------- */
   function bind() {
     document.addEventListener('keydown', e => {
       if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -399,19 +429,19 @@
     $('#btn-undo').addEventListener('click', undo);
     $('#btn-clear').addEventListener('click', () => { state.tapeIn = ''; state.tapeOut = ''; history = []; renderTape(); save(); });
     $('#btn-copy').addEventListener('click', async () => {
-      try { await navigator.clipboard.writeText(fmt(state.tapeOut)); toast('Ausgabe kopiert.'); }
-      catch (e) { toast('Kopieren nicht möglich.'); }
+      try { await navigator.clipboard.writeText(fmt(state.tapeOut)); toast(tr('copied')); }
+      catch (e) { toast(tr('copyFail')); }
     });
     $('#btn-bulk').addEventListener('click', () => {
       const text = Enigma.normalize($('#bulk-text').value);
-      if (!text) { toast('Kein Text mit Buchstaben A–Z.'); return; }
+      if (!text) { toast(tr('noLetters')); return; }
       history = [];
       let out = '';
       for (const ch of text) out += A[enigma.press(A.indexOf(ch)).out];
       syncFromMachine();
       state.tapeIn += text; state.tapeOut += out;
       renderTape(); updateRotors(); save(); click(true);
-      toast(`${text.length} Zeichen verarbeitet.`);
+      toast(tr('processed', { n: text.length }));
     });
 
     new ResizeObserver(() => drawCables()).observe($('#plugboard'));
@@ -422,7 +452,7 @@
   }
   function undo() {
     const h = history.pop();
-    if (!h) { toast('Nichts zum Zurücknehmen.'); return; }
+    if (!h) { toast(tr('nothingUndo')); return; }
     enigma.rotors.forEach((r, i) => { r.pos = h.positions[i]; });
     enigma.reflPos = h.reflPos;
     syncFromMachine();
@@ -432,9 +462,10 @@
 
   /* ---------- Start ---------- */
   renderModelSelect();
+  renderLangSelect();
   document.body.dataset.model = state.model;
   rebuild();
-  renderRotors(); renderBoards(); renderPlugboard(); renderTape(); renderPresets(); renderSettings();
+  applyLanguage();
   bind();
 
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {

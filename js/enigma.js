@@ -1,9 +1,9 @@
 /*
- * Enigma-Engine: reine Logik ohne DOM, auch in Node testbar.
+ * Enigma engine: pure logic without DOM, also testable in Node.
  * cfg = {
- *   rotors: ['I','II','III'],     // links -> rechts
- *   greek: 'Beta',                // nur M4
- *   rings: [..], positions: [..]  // 0..25, inkl. Griechenwalze vorn (M4)
+ *   rotors: ['I','II','III'],     // left -> right
+ *   greek: 'Beta',                // M4 only
+ *   rings: [..], positions: [..]  // 0..25, incl. Greek rotor first (M4)
  *   reflector: 'B', reflectorPos: 0,
  *   plugs: 'AB CD EF'
  * }
@@ -36,7 +36,7 @@
     const letters = (str || '').toUpperCase().replace(/[^A-Z]/g, '');
     for (let i = 0; i + 1 < letters.length; i += 2) {
       const a = toIdx(letters[i]), b = toIdx(letters[i + 1]);
-      if (a === b || map[a] !== a || map[b] !== b) continue; // ungültig/doppelt
+      if (a === b || map[a] !== a || map[b] !== b) continue; // invalid or duplicate
       map[a] = b; map[b] = a; pairs.push(letters[i] + letters[i + 1]);
     }
     return { map, pairs };
@@ -56,15 +56,15 @@
       }
       cfg.rotors.forEach((name, i) => {
         const def = machine.rotors[name];
-        if (!def) throw new Error('Unbekannte Walze ' + name);
+        if (!def) throw new Error('Unknown rotor ' + name);
         this.rotors.push(new Rotor(name, def, rings[i + extra], pos[i + extra]));
       });
       const rname = cfg.reflector || Object.keys(machine.reflectors)[0];
       this.reflectorName = rname;
       this.refl = arr(machine.reflectors[rname]);
       this.reflPos = machine.reflectorSettable ? (cfg.reflectorPos || 0) : 0;
-      this.etw = arr(machine.etw);       // Kontakt i <- Taste etw[i]
-      this.etwInv = inv(this.etw);       // Taste -> Kontakt
+      this.etw = arr(machine.etw);       // contact i <- key etw[i]
+      this.etwInv = inv(this.etw);       // key -> contact
       const p = machine.plugboard ? parsePlugs(cfg.plugs) : parsePlugs('');
       this.plug = p.map;
       this.plugPairs = p.pairs;
@@ -76,7 +76,7 @@
       const L = this.rotors.length;
       const r = this.rotors[L - 1], m = this.rotors[L - 2], l = this.rotors[L - 3];
       if (this.m.stepping === 'gear') {
-        // Zählwerk: Übertrag wie beim Kilometerzähler, kein Doppelschritt
+        // Counter drive (Enigma G): carry like an odometer, no double step
         const c0 = r.atNotch(); r.step();
         if (c0) {
           const c1 = m.atNotch(); m.step();
@@ -86,7 +86,7 @@
           }
         }
       } else {
-        // Schaltklinken mit Doppelschritt der mittleren Walze
+        // Pawl and ratchet stepping incl. the double step of the middle rotor
         const mn = m.atNotch(), rn = r.atNotch();
         if (mn) { m.step(); l.step(); }
         else if (rn) { m.step(); }
@@ -96,7 +96,7 @@
 
     reflect(c) { const p = this.reflPos; return mod(this.refl[mod(c + p)] - p); }
 
-    /* Verschlüsselt einen Buchstaben (0..25), liefert Ergebnis + Signalweg */
+    /* Encrypts one letter (0..25); returns the result and the current path */
     press(k) {
       this.step();
       const trace = [];

@@ -1,8 +1,8 @@
 {
   "name": "Enigma Simulator",
   "short_name": "Enigma",
-  "description": "Simulator historischer Enigma-Chiffriermaschinen",
-  "lang": "de",
+  "description": "Simulator of the historic Enigma cipher machines",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
