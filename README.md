@@ -69,6 +69,10 @@ tests/test.js         Tests
 
 Ein neues Modell braucht nur einen Eintrag in `js/machines.js`.
 
+## Lizenz
+
+© 2026 Johnny Haas. Veröffentlicht unter der [MIT-Lizenz](LICENSE).
+
 ## Quellen
 
 Verdrahtungen nach Crypto Museum (cryptomuseum.com) und „Enigma rotor details“ (Wikipedia). Die Daten der seltenen Modelle (G, T, Norenigma) lassen sich nicht über historische Funksprüche prüfen; vor einer ernsthaften Nutzung sollten sie mit dem Crypto Museum abgeglichen werden.

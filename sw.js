@@ -1,5 +1,5 @@
 // Offline-Cache. Bei jeder Änderung der App VERSION erhöhen.
-const VERSION = 'enigma-v1.0.0';
+const VERSION = 'enigma-v1.0.1';
 const ASSETS = [
   './',
   './index.html',
